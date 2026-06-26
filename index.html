@@ -28,13 +28,13 @@
   .banner.info{background:rgba(79,156,255,.12);border:1px solid var(--accent);color:#cfe2ff}
   .banner button{background:transparent;border:1px solid currentColor;color:inherit;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
 
-  /* === SIDEBAR FIXA E COLADA À ESQUERDA === */
+    /* === LAYOUT PRINCIPAL - SIDEBAR FIXA COLADA À ESQUERDA === */
   .main-layout{
     display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 20px;
+    grid-template-columns: 270px 1fr;
+    gap: 24px;
     align-items: start;
-    max-width: 1280px;
+    max-width: 1300px;
     margin: 0 auto;
   }
 
@@ -43,12 +43,12 @@
     flex-direction: column;
     gap: 12px;
     position: sticky;
-    top: 90px;           /* Ajustado para ficar abaixo do header */
+    top: 85px;
     align-self: start;
-    z-index: 20;
+    z-index: 10;
   }
 
-    @media (max-width: 900px) {
+  @media (max-width: 900px) {
     .main-layout {
       grid-template-columns: 1fr;
     }
