@@ -163,8 +163,7 @@
   .rate-box{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);padding:6px 10px;border-radius:10px}
   .rate-box input{width:80px;padding:5px 8px}
   .rate-box span{font-size:12px;color:var(--muted)}
-  .budget-in{width:120px;padding:5px 8px;text-align:right}
-
+  
   /* LOGIN */
   #login-screen{
     position:fixed;inset:0;background:var(--bg);z-index:9999;
@@ -248,7 +247,6 @@
   <div class="tabs">
     <button class="active" data-tab="movimentos">Movimentos do mes</button>
     <button data-tab="faturas">Faturas dos cartoes</button>
-    <button data-tab="orcamento">Orcamento (previsto x real)</button>
     <button data-tab="graficos">Graficos / Resumo anual</button>
     <button data-tab="fixos">Gastos fixos</button>
     <button data-tab="config">Cartoes e categorias</button>
@@ -289,17 +287,6 @@
         <div id="faturaList"></div>
         <div class="empty hidden" id="faturaEmpty">Nenhuma compra no cartao para este mes.</div>
         <div id="faturaDetail"></div>
-      </div>
-
-      <div class="panel tab hidden" id="tab-orcamento">
-        <h2>Orcamento do mes <span class="hint">previsto x realizado por categoria</span></h2>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Categoria</th><th style="text-align:right">Previsto (R$)</th><th style="text-align:right">Realizado (R$)</th><th style="text-align:right">Diferenca</th></tr></thead>
-            <tbody id="budgetBody"></tbody>
-          </table>
-        </div>
-        <div class="mini">O "previsto" vale para todos os meses. O "realizado" e a soma dos gastos da categoria no mes selecionado.</div>
       </div>
 
       <div class="panel tab hidden" id="tab-graficos">
@@ -463,7 +450,6 @@ function defaults(){
     tx: [],
     fixed: [],
     paidFixed: {},
-    budget: {},
     lastBackup: 0
   };
 }
@@ -474,7 +460,6 @@ function load(){
       if(!d.categories || d.categories.join("|")===OLD_CATS.join("|")) d.categories=BASE_CATS.slice();
       d.categories.sort(sortCat);
       if(!d.paidFixed) d.paidFixed={};
-      if(!d.budget) d.budget={};
       if(!d.lastBackup) d.lastBackup=0;
       if(d.tx) d.tx=d.tx.filter(function(t){return t.kind!=="save";});
       if(d.fixed) d.fixed=d.fixed.filter(function(f){return f.kind!=="save";});
@@ -574,7 +559,6 @@ function render(){
   renderBanners(totPend, rowsV);
   renderMovimentos();
   renderFaturas();
-  renderBudget();
   renderFixos();
   renderSummary();
   renderConfig();
@@ -716,27 +700,6 @@ function renderFaturas(){
   document.getElementById("balFatura").textContent=fmtBRL(totalFaturaBRL);
   list.querySelectorAll("[data-payfat]").forEach(function(b){
     b.onclick=function(){ setCardInvoicePaid(b.getAttribute("data-payfat"), b.getAttribute("data-makepaid")==="1"); };
-  });
-}
-
-function renderBudget(){
-  var body=document.getElementById("budgetBody"); body.innerHTML="";
-  var realized={};
-  entriesForMonth(view).forEach(function(e){ if(e.kind==="expense"){ realized[e.category||"Outros"]=(realized[e.category||"Outros"]||0)+toBRLof(e); } });
-  state.categories.forEach(function(cat){
-    var prev=+state.budget[cat]||0;
-    var real=realized[cat]||0;
-    var diff=prev-real;
-    var diffCls = diff<0?"amt-out":"amt-paid";
-    var tr=document.createElement("tr");
-    tr.innerHTML="<td>"+escapeHtml(cat)+"</td>"+
-      "<td style='text-align:right'><input type='number' step='0.01' class='budget-in' data-bud='"+escapeAttr(cat)+"' value='"+(prev||"")+"' placeholder='0,00'></td>"+
-      "<td style='text-align:right'>"+fmtBRL(real)+"</td>"+
-      "<td style='text-align:right' class='"+(prev?diffCls:"")+"'>"+(prev?fmtBRL(diff):"-")+"</td>";
-    body.appendChild(tr);
-  });
-  body.querySelectorAll("[data-bud]").forEach(function(i){
-    i.onchange=function(){ var c=i.getAttribute("data-bud"); var v=parseFloat(i.value)||0; if(v) state.budget[c]=v; else delete state.budget[c]; save(); render(); };
   });
 }
 
@@ -1144,7 +1107,7 @@ document.getElementById("btnBackup").onclick=doBackup;
 document.getElementById("btnRestore").onclick=function(){ document.getElementById("fileRestore").click(); };
 document.getElementById("fileRestore").onchange=function(e){
   var f=e.target.files[0]; if(!f)return; var r=new FileReader();
-  r.onload=function(){ try{ var d=JSON.parse(r.result); if(!d.cards)throw 0; if(!d.paidFixed)d.paidFixed={}; if(!d.budget)d.budget={}; if(d.tx)d.tx=d.tx.filter(function(t){return t.kind!=="save";}); if(d.fixed)d.fixed=d.fixed.filter(function(x){return x.kind!=="save";}); state=d; save(); render(); alert("Backup restaurado."); }catch(err){ alert("Arquivo invalido."); } };
+  r.onload=function(){ try{ var d=JSON.parse(r.result); if(!d.cards)throw 0; if(!d.paidFixed)d.paidFixed={}; if(d.tx)d.tx=d.tx.filter(function(t){return t.kind!=="save";}); if(d.fixed)d.fixed=d.fixed.filter(function(x){return x.kind!=="save";}); state=d; save(); render(); alert("Backup restaurado."); }catch(err){ alert("Arquivo invalido."); } };
   r.readAsText(f);
 };
 document.getElementById("btnWipe").onclick=function(){ if(confirm("Isso vai apagar TUDO. Tem certeza?")){ if(confirm("Confirma mesmo? Nao da pra desfazer.")){ state=defaults(); save(); render(); } } };
