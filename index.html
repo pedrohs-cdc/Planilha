@@ -27,9 +27,35 @@
   .banner.warn{background:rgba(255,207,92,.12);border:1px solid var(--yellow);color:#ffe6a6}
   .banner.info{background:rgba(79,156,255,.12);border:1px solid var(--accent);color:#cfe2ff}
   .banner button{background:transparent;border:1px solid currentColor;color:inherit;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
-  .cards-row{display:flex;flex-direction:column;gap:10px}
-  .main-layout{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:start}
-  @media(max-width:900px){.main-layout{grid-template-columns:1fr}.cards-row{flex-direction:row;flex-wrap:wrap}.balance-card{flex:1;min-width:160px}}
+
+  /* === ALTERAÇÃO PRINCIPAL: Sidebar fixa === */
+  .main-layout{
+    display:grid;
+    grid-template-columns: 245px 1fr;
+    gap: 22px;
+    align-items:start;
+  }
+  .cards-row{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    position: sticky;
+    top: 85px;           /* Ajustado para ficar abaixo do header */
+    align-self: start;
+    z-index: 10;
+  }
+
+  @media(max-width:900px){
+    .main-layout{grid-template-columns:1fr}
+    .cards-row{
+      position: static;
+      flex-direction:row;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .balance-card{flex:1;min-width:160px}
+  }
+
   .balance-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
   .balance-card .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
   .balance-card .val{font-size:24px;font-weight:700;margin-top:6px}
@@ -40,6 +66,7 @@
   .balance-card.gastos{border-top:3px solid var(--red)}
   .balance-card.pend{border-top:3px solid var(--yellow)}
   .balance-card .sub{font-size:12px;color:var(--muted);margin-top:4px}
+
   .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start}
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:18px}
@@ -419,7 +446,6 @@ function load(){
       if(!d.paidFixed) d.paidFixed={};
       if(!d.budget) d.budget={};
       if(!d.lastBackup) d.lastBackup=0;
-      // limpeza: remover qualquer dado antigo de cofrinho
       if(d.tx) d.tx=d.tx.filter(function(t){return t.kind!=="save";});
       if(d.fixed) d.fixed=d.fixed.filter(function(f){return f.kind!=="save";});
       return d;
@@ -477,7 +503,6 @@ function entriesForMonth(ym){
   return out;
 }
 
-// Saldo da carteira: entradas - gastos PAGOS (so ate o mes atual)
 function walletBalance(cur){
   var n=nowYm(), bal=0;
   state.tx.forEach(function(t){
@@ -807,7 +832,6 @@ function fillCardSelect(){
   if(cur)sel.value=cur;
 }
 
-/* ===== abrir / fechar / editar ===== */
 function openForm(kind){
   currentKind=kind; editing=null;
   var fp=document.getElementById("formPanel");
@@ -966,7 +990,6 @@ function addEntry(){
     finishAdd(); return;
   }
 
-  // gasto
   if(d.repeat==="fixed"){
     state.fixed.push({id:uid(),kind:"expense",amount:d.amount,currency:d.cur,rate:d.rate,description:d.desc,category:d.cat,method:d.method,cardId:d.method==="cartao"?d.cardId:null,startMonth:monthOf(d.date),day:+d.date.slice(8,10)});
   } else if(d.repeat==="installment" && d.method==="cartao"){
@@ -1104,7 +1127,6 @@ document.querySelectorAll(".tabs button").forEach(function(b){
 
 (function init(){
   document.getElementById("fDate").value=new Date().toISOString().slice(0,10);
-  // Verificar login ao carregar
   if(localStorage.getItem("planilha_auth")==="ok"){
     document.getElementById("login-screen").classList.add("hidden");
   }
@@ -1112,7 +1134,7 @@ document.querySelectorAll(".tabs button").forEach(function(b){
 })();
 
 // ---- LOGIN ----
-var SENHA = "nicolas2025"; // troque aqui
+var SENHA = "nicolas2025";
 
 function doLogin(){
   var val = document.getElementById("login-input").value;
