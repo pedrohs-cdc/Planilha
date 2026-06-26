@@ -429,7 +429,7 @@
   </div><!-- /right-col -->
   </div><!-- /main-layout -->
 
-<div class="foot">Os dados ficam salvos somente neste navegador. Faca backup (JSON) de vez em quando para nao perder nada.</div>
+<div class="foot">Seus dados ficam salvos neste navegador. Faca backup periodico (JSON) para manter seu historico seguro.</div>
 
 <script>
 "use strict";
@@ -594,7 +594,7 @@ function renderBanners(totPend, rowsV){
   if(days>=7){
     var bb=document.createElement("div"); bb.className="banner info";
     var txt = state.lastBackup ? ("Faz "+Math.floor(days)+" dias desde o ultimo backup.") : "Voce ainda nao fez backup dos seus dados.";
-    bb.innerHTML="<span>"+txt+" Os dados ficam so neste navegador.</span><button id='bkNow'>Baixar backup agora</button>";
+    bb.innerHTML="<span>"+txt+" Seus dados ficam salvos neste navegador, faca backup periodico para manter seu historico seguro.</span><button id='bkNow'>Baixar backup agora</button>";
     box.appendChild(bb);
     document.getElementById("bkNow").onclick=doBackup;
   }
