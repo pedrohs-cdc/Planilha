@@ -21,8 +21,20 @@
   .month-nav button{background:var(--panel);border:1px solid var(--line);color:var(--txt);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px}
   .month-nav button:hover{border-color:var(--accent)}
   .month-nav .label{min-width:140px;text-align:center;font-weight:600;text-transform:capitalize}
-  .wrap{margin:0;padding:20px}
-  .banners{margin-bottom:14px;display:flex;flex-direction:column;gap:8px}
+  .wrap{margin:0;padding:20px;padding-bottom:90px}
+  .banners{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 12px 20px;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    display:flex;flex-direction:column;gap:8px;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0,0,0,.35);
+  }
   .banner{border-radius:10px;padding:10px 14px;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .banner.warn{background:rgba(255,207,92,.12);border:1px solid var(--yellow);color:#ffe6a6}
   .banner.info{background:rgba(79,156,255,.12);border:1px solid var(--accent);color:#cfe2ff}
@@ -586,6 +598,10 @@ function renderBanners(totPend, rowsV){
     box.appendChild(bb);
     document.getElementById("bkNow").onclick=doBackup;
   }
+  requestAnimationFrame(function(){
+    var h = box.offsetHeight;
+    document.querySelector(".wrap").style.paddingBottom = (h>0 ? h+30 : 20)+"px";
+  });
 }
 
 function passesFilter(e){
