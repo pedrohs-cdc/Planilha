@@ -536,12 +536,15 @@ function load(){
   }catch(e){}
   return defaults();
 }
+// Remove valores undefined que o Firestore nao aceita
+function sanitize(obj){
+  return JSON.parse(JSON.stringify(obj, function(k, v){ return v === undefined ? null : v; }));
+}
+
 function save(){
-  // Salva localmente (instantaneo, funciona offline)
   localStorage.setItem(KEY, JSON.stringify(state));
-  // Sincroniza com a nuvem
   setSyncStatus("syncing");
-  CLOUD_DOC.set(state).then(function(){
+  CLOUD_DOC.set(sanitize(state)).then(function(){
     setSyncStatus("ok");
   }).catch(function(err){
     setSyncStatus("error", "Sem conexao");
@@ -1236,7 +1239,7 @@ document.querySelectorAll(".tabs button").forEach(function(b){
     } else {
       // Nuvem vazia: envia os dados locais pra nuvem pela primeira vez
       setSyncStatus("syncing");
-      CLOUD_DOC.set(state).then(function(){
+      CLOUD_DOC.set(sanitize(state)).then(function(){
         setSyncStatus("ok");
       }).catch(function(err){
         setSyncStatus("error", "Config Firebase pendente");
