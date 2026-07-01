@@ -42,6 +42,8 @@
   .banner.warn{background:rgba(255,207,92,.12);border:1px solid var(--yellow);color:#ffe6a6}
   .banner.info{background:rgba(79,156,255,.12);border:1px solid var(--accent);color:#cfe2ff}
   .banner button{background:transparent;border:1px solid currentColor;color:inherit;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
+  .banner-close{border:none !important;padding:2px 6px !important;font-size:18px !important;line-height:1;opacity:.6;margin-left:4px;flex-shrink:0}
+  .banner-close:hover{opacity:1 !important}
 
     /* === LAYOUT PRINCIPAL - SIDEBAR FIXA COLADA À ESQUERDA === */
   .main-layout{
@@ -643,21 +645,36 @@ function render(){
   renderAnnual();
 }
 
+var bannersHidden = {};
+
+function closeBanner(key, el){
+  bannersHidden[key] = true;
+  el.remove();
+  requestAnimationFrame(function(){
+    var box = document.getElementById("banners");
+    var h = box.offsetHeight;
+    document.querySelector(".wrap").style.paddingBottom = (h>0 ? h+30 : 20)+"px";
+  });
+}
+
 function renderBanners(totPend, rowsV){
   var box=document.getElementById("banners"); box.innerHTML="";
+  var pendKey = "pend_"+view;
   var pendCount=rowsV.filter(function(e){return e.kind==="expense"&&!e.paid;}).length;
-  if(pendCount>0){
+  if(pendCount>0 && !bannersHidden[pendKey]){
     var b=document.createElement("div"); b.className="banner warn";
-    b.innerHTML="<span>Voce tem <b>"+pendCount+"</b> conta(s) pendente(s) este mes, somando <b>"+fmtBRL(totPend)+"</b>.</span>";
+    b.innerHTML="<span>Voce tem <b>"+pendCount+"</b> conta(s) pendente(s) este mes, somando <b>"+fmtBRL(totPend)+"</b>.</span><button class='banner-close' title='Fechar'>&times;</button>";
     box.appendChild(b);
+    b.querySelector(".banner-close").onclick=function(){ closeBanner(pendKey, b); };
   }
   var days = state.lastBackup ? (Date.now()-state.lastBackup)/86400000 : 999;
-  if(days>=7){
+  if(days>=7 && !bannersHidden["backup"]){
     var bb=document.createElement("div"); bb.className="banner info";
     var txt = state.lastBackup ? ("Faz "+Math.floor(days)+" dias desde o ultimo backup.") : "Voce ainda nao fez backup dos seus dados.";
-    bb.innerHTML="<span>"+txt+" Seus dados ficam salvos neste navegador, faca backup periodico para manter seu historico seguro.</span><button id='bkNow'>Baixar backup agora</button>";
+    bb.innerHTML="<span>"+txt+" Seus dados ficam salvos neste navegador, faca backup periodico para manter seu historico seguro.</span><button id='bkNow'>Baixar backup agora</button><button class='banner-close' title='Fechar'>&times;</button>";
     box.appendChild(bb);
     document.getElementById("bkNow").onclick=doBackup;
+    bb.querySelector(".banner-close").onclick=function(){ closeBanner("backup", bb); };
   }
   requestAnimationFrame(function(){
     var h = box.offsetHeight;
@@ -1255,4 +1272,4 @@ function doLogout(){
 }
 </script>
 </body>
-</html>s
+</html>
