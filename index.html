@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Controle de Gastos - Nicolas</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --bg:#0f1419; --panel:#1a2230; --panel2:#222d3d; --line:#2c3a4f;
@@ -196,6 +199,8 @@
     padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;
   }
   .logout-btn:hover{border-color:var(--red);color:var(--red)}
+  #syncStatus{font-size:12px;color:var(--muted);min-width:130px;text-align:right;transition:color .3s}
+  .sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:5px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -222,6 +227,7 @@
     <div class="label" id="monthLabel">-</div>
     <button id="nextM" title="Proximo mes">&#8250;</button>
   </div>
+  <span id="syncStatus"></span>
   <button class="logout-btn" onclick="doLogout()">Sair</button>
 </header>
 
@@ -416,10 +422,70 @@
   </div><!-- /right-col -->
   </div><!-- /main-layout -->
 
-<div class="foot">Seus dados ficam salvos neste navegador. Faca backup periodico (JSON) para manter seu historico seguro.</div>
+<div class="foot">Seus dados sao sincronizados na nuvem (Firebase) e ficam acessiveis em qualquer dispositivo. Faca backup periodico (JSON) como seguranca extra.</div>
 
 <script>
 "use strict";
+
+// ================================================================
+// CONFIGURACAO DO FIREBASE
+// Substitua os valores abaixo com as configuracoes do seu projeto:
+// console.firebase.google.com -> Seu projeto -> Configuracoes -> App da Web
+// ================================================================
+var firebaseConfig = {
+  apiKey:            "AIzaSyA9rbklxzJcfHgXnmWeUMSzlemE8KSWeKE",
+  authDomain:        "planilha-gastos-2e94c.firebaseapp.com",
+  projectId:         "planilha-gastos-2e94c",
+  storageBucket:     "planilha-gastos-2e94c.firebasestorage.app",
+  messagingSenderId: "618270508562",
+  appId:             "1:618270508562:web:4d65df70d4bfcc14c17acb"
+};
+
+var fbApp  = firebase.initializeApp(firebaseConfig);
+var db     = firebase.firestore(fbApp);
+var CLOUD_DOC = db.collection("pgn").doc("gastos_data");
+
+// --- Indicador de status de sync ---
+function setSyncStatus(s, msg) {
+  var el = document.getElementById("syncStatus");
+  if (!el) return;
+  if (s === "syncing") {
+    el.innerHTML = "<span class='sync-dot' style='background:var(--yellow)'></span>Sincronizando...";
+    el.style.color = "var(--yellow)";
+  } else if (s === "ok") {
+    el.innerHTML = "<span class='sync-dot' style='background:var(--green)'></span>Nuvem OK";
+    el.style.color = "var(--green)";
+    setTimeout(function() { setSyncStatus("idle"); }, 3000);
+  } else if (s === "error") {
+    el.innerHTML = "<span class='sync-dot' style='background:var(--red)'></span>" + (msg || "Sem conexao");
+    el.style.color = "var(--red)";
+  } else {
+    el.innerHTML = "<span class='sync-dot' style='background:var(--muted)'></span>Local";
+    el.style.color = "var(--muted)";
+  }
+}
+
+// --- Carrega dados da nuvem ---
+function loadFromCloud() {
+  return CLOUD_DOC.get().then(function(doc) {
+    if (doc.exists) {
+      var d = doc.data();
+      if (d && d.cards) {
+        if (!d.categories || d.categories.join("|") === OLD_CATS.join("|")) d.categories = BASE_CATS.slice();
+        d.categories.sort(sortCat);
+        if (!d.paidFixed) d.paidFixed = {};
+        if (!d.lastBackup) d.lastBackup = 0;
+        if (d.tx)    d.tx    = d.tx.filter(function(t){ return t.kind !== "save"; });
+        if (d.fixed) d.fixed = d.fixed.filter(function(f){ return f.kind !== "save"; });
+        return d;
+      }
+    }
+    return null;
+  }).catch(function(err) {
+    console.error("Erro ao carregar da nuvem:", err);
+    return null;
+  });
+}
 
 var KEY = "pgn_data_v1";
 var BASE_CATS = [
@@ -468,7 +534,18 @@ function load(){
   }catch(e){}
   return defaults();
 }
-function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function save(){
+  // Salva localmente (instantaneo, funciona offline)
+  localStorage.setItem(KEY, JSON.stringify(state));
+  // Sincroniza com a nuvem
+  setSyncStatus("syncing");
+  CLOUD_DOC.set(state).then(function(){
+    setSyncStatus("ok");
+  }).catch(function(err){
+    setSyncStatus("error", "Sem conexao");
+    console.error("Erro ao salvar na nuvem:", err);
+  });
+}
 
 function sortCat(a,b){ return (""+a).localeCompare(""+b,"pt",{sensitivity:"base"}); }
 function pad(n){ return (n<10?"0":"")+n; }
@@ -1123,11 +1200,37 @@ document.querySelectorAll(".tabs button").forEach(function(b){
 });
 
 (function init(){
-  document.getElementById("fDate").value=new Date().toISOString().slice(0,10);
-  if(localStorage.getItem("planilha_auth")==="ok"){
+  document.getElementById("fDate").value = new Date().toISOString().slice(0,10);
+  if(localStorage.getItem("planilha_auth") === "ok"){
     document.getElementById("login-screen").classList.add("hidden");
   }
-  render();
+
+  // Tenta carregar da nuvem primeiro
+  setSyncStatus("syncing");
+  var syncEl = document.getElementById("syncStatus");
+  if(syncEl) syncEl.innerHTML = "<span class='sync-dot' style='background:var(--yellow)'></span>Carregando...";
+
+  loadFromCloud().then(function(cloudData){
+    if(cloudData){
+      // Nuvem tem dados: usa eles (sempre fonte de verdade entre dispositivos)
+      state = cloudData;
+      localStorage.setItem(KEY, JSON.stringify(state));
+      setSyncStatus("ok");
+    } else {
+      // Nuvem vazia: envia os dados locais pra nuvem pela primeira vez
+      setSyncStatus("syncing");
+      CLOUD_DOC.set(state).then(function(){
+        setSyncStatus("ok");
+      }).catch(function(err){
+        setSyncStatus("error", "Config Firebase pendente");
+        console.error("Firebase nao configurado:", err);
+      });
+    }
+    render();
+  }).catch(function(){
+    setSyncStatus("error", "Firebase nao configurado");
+    render();
+  });
 })();
 
 // ---- LOGIN ----
@@ -1152,4 +1255,4 @@ function doLogout(){
 }
 </script>
 </body>
-</html>
+</html>s
