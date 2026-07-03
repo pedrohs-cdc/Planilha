@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Controle de Gastos - Nicolas</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <!-- Firebase SDK -->
@@ -26,7 +26,7 @@
   .month-nav button{background:var(--panel);border:1px solid var(--line);color:var(--txt);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px}
   .month-nav button:hover{border-color:var(--accent)}
   .month-nav .label{min-width:140px;text-align:center;font-weight:600;text-transform:capitalize}
-  .wrap{margin:0 auto;padding:20px;padding-bottom:90px;max-width:1440px}
+  .wrap{margin:0 auto;padding:20px;padding-bottom:130px;max-width:1440px}
   @media(max-width:600px){ .wrap{padding-left:12px;padding-right:12px} }
   .banners{
     position: fixed;
@@ -35,15 +35,18 @@
     right: 0;
     margin: 0;
     padding: 12px 20px;
-    background: var(--bg);
-    border-top: 1px solid var(--line);
+    background: transparent;
     display:flex;flex-direction:column;gap:8px;
     z-index: 100;
-    box-shadow: 0 -4px 20px rgba(0,0,0,.35);
+    pointer-events: none;
   }
-  .banner{border-radius:10px;padding:10px 14px;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  .banner.warn{background:rgba(255,207,92,.12);border:1px solid var(--yellow);color:#ffe6a6}
-  .banner.info{background:rgba(79,156,255,.12);border:1px solid var(--accent);color:#cfe2ff}
+  .banners .banner{ pointer-events: auto; }
+  @media(max-width:760px){
+    .banners{ padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+  }
+  .banner{border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.45;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 4px 16px rgba(0,0,0,.35)}
+  .banner.warn{background:rgba(30,25,10,.9);border:1px solid var(--yellow);color:#ffe6a6;backdrop-filter:blur(6px)}
+  .banner.info{background:rgba(10,20,35,.9);border:1px solid var(--accent);color:#cfe2ff;backdrop-filter:blur(6px)}
   .banner button{background:transparent;border:1px solid currentColor;color:inherit;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
   .banner-close{border:none !important;padding:2px 6px !important;font-size:18px !important;line-height:1;opacity:.6;margin-left:4px;flex-shrink:0}
   .banner-close:hover{opacity:1 !important}
@@ -135,7 +138,7 @@
   .bigbtn .ic{font-size:18px;line-height:1}
   @media(max-width:640px){
     .action-buttons{
-      position:fixed;bottom:70px;right:16px;left:auto;
+      position:fixed;bottom:calc(70px + env(safe-area-inset-bottom, 0px));right:16px;left:auto;
       flex-direction:column;align-items:flex-end;gap:12px;
       margin-bottom:0;z-index:80;
     }
@@ -745,7 +748,7 @@ function closeBanner(key, el){
   requestAnimationFrame(function(){
     var box = document.getElementById("banners");
     var h = box.offsetHeight;
-    document.querySelector(".wrap").style.paddingBottom = (h>0 ? h+30 : 20)+"px";
+    document.querySelector(".wrap").style.paddingBottom = (h>0 ? h+40 : 30)+"px";
   });
 }
 
@@ -780,7 +783,7 @@ function renderBanners(totPend, rowsV){
   }
   requestAnimationFrame(function(){
     var h = box.offsetHeight;
-    document.querySelector(".wrap").style.paddingBottom = (h>0 ? h+30 : 20)+"px";
+    document.querySelector(".wrap").style.paddingBottom = (h>0 ? h+40 : 30)+"px";
   });
 }
 
