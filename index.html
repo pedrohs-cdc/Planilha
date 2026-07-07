@@ -188,15 +188,17 @@
   .closeX{background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
   .closeX:hover{color:var(--txt)}
   .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-  .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:16px}
-  .filters input,.filters select{width:100%;height:40px;box-sizing:border-box}
-  .filters select{appearance:none;-webkit-appearance:none;-moz-appearance:none;cursor:pointer;font-size:13.5px;
+  .filters{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  .filter-field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px;font-weight:600}
+  .filters input,.filters select{width:100%;height:42px;box-sizing:border-box}
+  .filters select{appearance:none;-webkit-appearance:none;-moz-appearance:none;cursor:pointer;font-size:14px;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239fb0c4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
-    background-repeat:no-repeat;background-position:right 10px center;background-size:12px;padding-right:26px}
+    background-repeat:no-repeat;background-position:right 12px center;background-size:13px;padding-right:30px}
   .search-box{position:relative;min-width:0}
   .search-box input{padding-left:34px}
   .search-box svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;pointer-events:none;color:var(--muted)}
-  @media(max-width:700px){.filters{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:900px){.filters{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.filters{grid-template-columns:1fr}}
   .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
   table{width:100%;border-collapse:collapse;font-size:13px}
   th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
@@ -360,24 +362,36 @@
       <div class="panel tab" id="tab-movimentos">
         <h2>Movimentos do mes <span class="hint" id="movCount"></span></h2>
         <div class="filters">
-          <div class="search-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="filtSearch" placeholder="Buscar descricao...">
+          <div class="filter-field">
+            <label>Busca</label>
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="filtSearch" placeholder="Buscar descricao...">
+            </div>
           </div>
-          <select id="filtCat"><option value="">Todas categorias</option></select>
-          <select id="filtForma">
-            <option value="">Toda forma</option>
-            <option value="carteira">Carteira</option>
-            <option value="pix">PIX</option>
-            <option value="cartao">Cartao</option>
-          </select>
-          <select id="filtStatus">
-            <option value="">Tudo</option>
-            <option value="income">So entradas</option>
-            <option value="expense">So gastos</option>
-            <option value="pago">Gastos pagos</option>
-            <option value="pendente">Gastos pendentes</option>
-          </select>
+          <div class="filter-field">
+            <label>Categoria</label>
+            <select id="filtCat"><option value="">Todas categorias</option></select>
+          </div>
+          <div class="filter-field">
+            <label>Forma de pagamento</label>
+            <select id="filtForma">
+              <option value="">Toda forma</option>
+              <option value="carteira">Carteira</option>
+              <option value="pix">PIX</option>
+              <option value="cartao">Cartao</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label>Status</label>
+            <select id="filtStatus">
+              <option value="">Tudo</option>
+              <option value="income">So entradas</option>
+              <option value="expense">So gastos</option>
+              <option value="pago">Gastos pagos</option>
+              <option value="pendente">Gastos pendentes</option>
+            </select>
+          </div>
         </div>
         <div class="table-wrap">
           <table>
