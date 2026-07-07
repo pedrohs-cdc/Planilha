@@ -13,7 +13,7 @@
     --bg:#0f1419; --panel:#1a2230; --panel2:#222d3d; --line:#2c3a4f;
     --txt:#e7edf5; --muted:#9fb0c4; --accent:#4f9cff; --accent2:#7c5cff;
     --green:#2ecc8f; --red:#ff6b6b; --yellow:#ffcf5c; --blue:#4f9cff;
-    --radius:14px;
+    --radius:14px; --wrap-pad:20px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -55,8 +55,8 @@
   .month-nav button:hover{border-color:var(--accent);color:var(--accent)}
   .month-nav .label{min-width:130px;text-align:center;font-weight:600;text-transform:capitalize;font-size:13px}
   .header-right{display:flex;align-items:center;gap:12px}
-  .wrap{margin:0 auto;padding:20px;padding-bottom:130px;max-width:1440px}
-  @media(max-width:600px){ .wrap{padding-left:12px;padding-right:12px} }
+  .wrap{margin:0 auto;padding:var(--wrap-pad);padding-bottom:130px;max-width:1440px}
+  @media(max-width:600px){ :root{--wrap-pad:12px} }
   .banners{
     position: fixed;
     bottom: 0;
@@ -116,16 +116,31 @@
       flex-wrap: nowrap;
       width: 100%;
       gap: 10px;
+      margin-left:calc(-1 * var(--wrap-pad));
+      margin-right:calc(-1 * var(--wrap-pad));
     }
     .balance-card {
       flex: none;
       width: 100%;
       min-width: 0;
+      border-radius:0;
     }
     .right-col{
       max-width: 100%;
       margin: 0;
     }
+    #formPanel,#resumoPanel{
+      margin-left:calc(-1 * var(--wrap-pad));
+      margin-right:calc(-1 * var(--wrap-pad));
+      border-radius:0;
+    }
+  }
+  @media (min-width:641px) and (max-width: 900px){
+    .action-buttons{
+      margin-left:calc(-1 * var(--wrap-pad));
+      margin-right:calc(-1 * var(--wrap-pad));
+    }
+    .bigbtn{ border-radius:0; }
   }
 
   .balance-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;transition:transform .15s,border-color .15s}
@@ -543,7 +558,7 @@
         <button class="btn sec" id="btnClose">Fechar</button>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="resumoPanel">
         <h2>Resumo do mes</h2>
         <div class="table-wrap"><table><tbody id="summaryBody"></tbody></table></div>
       </div>
