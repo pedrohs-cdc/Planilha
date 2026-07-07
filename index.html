@@ -135,6 +135,7 @@
   .balance-card .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
   .balance-card .bc-ic{font-size:18px;line-height:1;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(0,0,0,.3))}
   .balance-card .val{font-size:24px;font-weight:700;margin-top:6px}
+  .balance-card.gastos .val,.balance-card.pend .val{font-size:19px;white-space:normal;line-height:1.3}
   .balance-card.brl{border-top:3px solid var(--green);--bc-accent:var(--green);--bc-glow:rgba(46,204,143,.25)}
   .balance-card.usd{border-top:3px solid var(--accent);--bc-accent:var(--accent);--bc-glow:rgba(79,156,255,.25)}
   .balance-card.total{border-top:3px solid var(--accent2);--bc-accent:var(--accent2);--bc-glow:rgba(124,92,255,.25)}
@@ -669,6 +670,12 @@ function fmt(v,cur){
   return (v<0?"-":"")+(cur==="USD"?"US$ ":"R$ ")+Math.abs(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 function fmtBRL(v){ return fmt(v,"BRL"); }
+function fmtDual(brl,usd){
+  var parts=[];
+  if(brl!==0 || usd===0) parts.push(fmtBRL(brl));
+  if(usd!==0) parts.push(fmt(usd,"USD"));
+  return parts.join(" + ");
+}
 function toBRL(v,cur){ return cur==="USD"? v*(+state.rate||0) : v; }
 function toBRLof(e){ return e.currency==="USD" ? e.amount*(+e.rate||+state.rate||0) : e.amount; }
 function cardById(id){ for(var i=0;i<state.cards.length;i++) if(state.cards[i].id===id) return state.cards[i]; return null; }
@@ -741,14 +748,17 @@ function render(){
 
   var rowsV=entriesForMonth(view);
   var totGastos=0, totPend=0, totFaturaCartao=0;
+  var totGastosBRL=0, totGastosUSD=0, totPendBRL=0, totPendUSD=0;
   rowsV.forEach(function(e){
     if(e.kind==="expense"){
       var b=toBRLof(e); totGastos+=b; if(!e.paid) totPend+=b;
       if(e.method==="cartao") totFaturaCartao+=b;
+      if(e.currency==="USD"){ totGastosUSD+=e.amount; if(!e.paid) totPendUSD+=e.amount; }
+      else { totGastosBRL+=e.amount; if(!e.paid) totPendBRL+=e.amount; }
     }
   });
-  document.getElementById("balGastos").textContent=fmtBRL(totGastos);
-  document.getElementById("balPend").textContent=fmtBRL(totPend);
+  document.getElementById("balGastos").textContent=fmtDual(totGastosBRL,totGastosUSD);
+  document.getElementById("balPend").textContent=fmtDual(totPendBRL,totPendUSD);
 
   var budgetSub=document.getElementById("balGastosSub");
   var budgetWrap=document.getElementById("barBudgetWrap");
