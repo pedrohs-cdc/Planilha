@@ -685,21 +685,23 @@ function invoiceMonth(dateISO, closingDay){
 
 function entriesForMonth(ym){
   var out=[];
-  state.tx.forEach(function(t){
+  state.tx.forEach(function(t,i){
     var comp = t.method==="cartao" && t.invoiceMonth ? t.invoiceMonth : monthOf(t.date);
-    if(comp===ym) out.push(Object.assign({},t,{comp:comp,fixed:false}));
+    if(comp===ym) out.push(Object.assign({},t,{comp:comp,fixed:false,_ord:i}));
   });
-  state.fixed.forEach(function(f){
+  state.fixed.forEach(function(f,i){
     if(f.startMonth<=ym){
       out.push({
         id:f.id+"_"+ym, ruleId:f.id, kind:f.kind, amount:f.amount, currency:f.currency, rate:f.rate,
         date:ym+"-"+pad(f.day||1), description:f.description, category:f.category,
         method:f.method, cardId:f.cardId, comp:ym, fixed:true,
-        paid: !!state.paidFixed[f.id+"_"+ym]
+        paid: !!state.paidFixed[f.id+"_"+ym],
+        _ord:-1000000+i
       });
     }
   });
-  out.sort(function(a,b){ return a.date<b.date?-1:1; });
+  // Mais recentes adicionados primeiro (topo da lista). Nao reordena por data.
+  out.sort(function(a,b){ return b._ord-a._ord; });
   return out;
 }
 
