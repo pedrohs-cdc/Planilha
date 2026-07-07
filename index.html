@@ -142,6 +142,21 @@
     }
     .bigbtn{ border-radius:0; }
   }
+  @media (min-width:901px){
+    .cards-row{
+      margin-left:calc(-1 * var(--wrap-pad));
+    }
+    .cards-row .balance-card{
+      border-radius:0 var(--radius) var(--radius) 0;
+    }
+    #formPanel,#resumoPanel{
+      margin-right:calc(-1 * var(--wrap-pad));
+      border-radius:var(--radius) 0 0 var(--radius);
+    }
+    .action-buttons{
+      margin-right:calc(-1 * var(--wrap-pad));
+    }
+  }
 
   .balance-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;transition:transform .15s,border-color .15s}
   .balance-card::after{content:"";position:absolute;top:0;right:0;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,var(--bc-glow,transparent) 0%,transparent 70%);transform:translate(30%,-30%);pointer-events:none;opacity:.5}
