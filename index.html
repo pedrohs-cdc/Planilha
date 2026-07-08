@@ -368,8 +368,8 @@
 
   <!-- COLUNA ESQUERDA: resumo -->
   <div class="cards-row">
-    <div class="balance-card brl"><div class="bc-top"><div class="lbl">Saldo carteira R$</div><span class="bc-ic">💰</span></div><div class="val" id="balBRL">R$ 0,00</div><div class="sub">entradas - gastos pagos</div></div>
-    <div class="balance-card usd"><div class="bc-top"><div class="lbl">Saldo carteira US$</div><span class="bc-ic">💵</span></div><div class="val" id="balUSD">US$ 0,00</div><div class="sub">entradas - gastos pagos</div></div>
+    <div class="balance-card brl"><div class="bc-top"><div class="lbl">Saldo carteira R$</div><span class="bc-ic">💰</span></div><div class="val" id="balBRL">R$ 0,00</div><div class="sub">entradas - gastos pagos do mes</div></div>
+    <div class="balance-card usd"><div class="bc-top"><div class="lbl">Saldo carteira US$</div><span class="bc-ic">💵</span></div><div class="val" id="balUSD">US$ 0,00</div><div class="sub">entradas - gastos pagos do mes</div></div>
     <div class="balance-card total"><div class="bc-top"><div class="lbl">Total estimado em R$</div><span class="bc-ic">📊</span></div><div class="val" id="balTotal">R$ 0,00</div><div class="sub" id="balTotalSub">com a cotacao atual</div></div>
     <div class="balance-card fatura"><div class="bc-top"><div class="lbl">Faturas do mes</div><span class="bc-ic">🧾</span></div><div class="val" id="balFatura" style="color:var(--yellow)">R$ 0,00</div><div class="sub">soma dos cartoes</div><div class="bc-bar"><div class="bc-bar-fill" id="barFatura"></div></div></div>
     <div class="balance-card gastos"><div class="bc-top"><div class="lbl">Gastos do mes</div><span class="bc-ic">📉</span></div><div class="val" id="balGastos" style="color:var(--red)">R$ 0,00</div><div class="sub" id="balGastosSub">carteira + cartoes</div><div class="bc-bar hidden" id="barBudgetWrap"><div class="bc-bar-fill" id="barBudget"></div></div></div>
@@ -770,24 +770,14 @@ function entriesForMonth(ym){
 }
 
 function walletBalance(cur){
-  var n=nowYm(), bal=0;
-  state.tx.forEach(function(t){
-    if(t.currency!==cur) return;
-    var comp = t.method==="cartao" && t.invoiceMonth ? t.invoiceMonth : monthOf(t.date);
-    if(comp>n) return;
-    if(t.kind==="income") bal+=t.amount;
-    else if(t.paid) bal-=t.amount;
+  // Saldo do mes selecionado (entradas - gastos pagos do mes), nunca negativo
+  var bal=0;
+  entriesForMonth(view).forEach(function(e){
+    if(e.currency!==cur) return;
+    if(e.kind==="income") bal+=e.amount;
+    else if(e.paid) bal-=e.amount;
   });
-  state.fixed.forEach(function(f){
-    if(f.currency!==cur) return;
-    var m=f.startMonth;
-    while(m<=n){
-      if(f.kind==="income") bal+=f.amount;
-      else if(state.paidFixed[f.id+"_"+m]) bal-=f.amount;
-      m=addMonths(m,1);
-    }
-  });
-  return bal;
+  return Math.max(0, bal);
 }
 
 function render(){
