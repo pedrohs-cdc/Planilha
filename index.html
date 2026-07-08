@@ -368,8 +368,8 @@
 
   <!-- COLUNA ESQUERDA: resumo -->
   <div class="cards-row">
-    <div class="balance-card brl"><div class="bc-top"><div class="lbl">Saldo carteira R$</div><span class="bc-ic">💰</span></div><div class="val" id="balBRL">R$ 0,00</div><div class="sub" id="balBRLSub">total de entradas adicionadas</div></div>
-    <div class="balance-card usd"><div class="bc-top"><div class="lbl">Saldo carteira US$</div><span class="bc-ic">💵</span></div><div class="val" id="balUSD">US$ 0,00</div><div class="sub" id="balUSDSub">total de entradas adicionadas</div></div>
+    <div class="balance-card brl"><div class="bc-top"><div class="lbl">Saldo carteira R$</div><span class="bc-ic">💰</span></div><div class="val" id="balBRL">R$ 0,00</div><div class="sub">entradas - gastos pagos</div></div>
+    <div class="balance-card usd"><div class="bc-top"><div class="lbl">Saldo carteira US$</div><span class="bc-ic">💵</span></div><div class="val" id="balUSD">US$ 0,00</div><div class="sub">entradas - gastos pagos</div></div>
     <div class="balance-card total"><div class="bc-top"><div class="lbl">Total estimado em R$</div><span class="bc-ic">📊</span></div><div class="val" id="balTotal">R$ 0,00</div><div class="sub" id="balTotalSub">com a cotacao atual</div></div>
     <div class="balance-card fatura"><div class="bc-top"><div class="lbl">Faturas do mes</div><span class="bc-ic">🧾</span></div><div class="val" id="balFatura" style="color:var(--yellow)">R$ 0,00</div><div class="sub">soma dos cartoes</div><div class="bc-bar"><div class="bc-bar-fill" id="barFatura"></div></div></div>
     <div class="balance-card gastos"><div class="bc-top"><div class="lbl">Gastos do mes</div><span class="bc-ic">📉</span></div><div class="val" id="balGastos" style="color:var(--red)">R$ 0,00</div><div class="sub" id="balGastosSub">carteira + cartoes</div><div class="bc-bar hidden" id="barBudgetWrap"><div class="bc-bar-fill" id="barBudget"></div></div></div>
@@ -769,29 +769,25 @@ function entriesForMonth(ym){
   return out;
 }
 
-function walletBalanceRaw(cur){
-  // Total de entradas (dinheiro adicionado) desde o inicio - NAO desconta gastos
+function walletBalance(cur){
   var n=nowYm(), bal=0;
   state.tx.forEach(function(t){
     if(t.currency!==cur) return;
-    if(t.kind!=="income") return;
-    var comp = monthOf(t.date);
+    var comp = t.method==="cartao" && t.invoiceMonth ? t.invoiceMonth : monthOf(t.date);
     if(comp>n) return;
-    bal+=t.amount;
+    if(t.kind==="income") bal+=t.amount;
+    else if(t.paid) bal-=t.amount;
   });
   state.fixed.forEach(function(f){
     if(f.currency!==cur) return;
-    if(f.kind!=="income") return;
     var m=f.startMonth;
     while(m<=n){
-      bal+=f.amount;
+      if(f.kind==="income") bal+=f.amount;
+      else if(state.paidFixed[f.id+"_"+m]) bal-=f.amount;
       m=addMonths(m,1);
     }
   });
   return bal;
-}
-function walletBalance(cur){
-  return Math.max(0, walletBalanceRaw(cur));
 }
 
 function render(){
@@ -802,13 +798,8 @@ function render(){
   var budgetConfigEl=document.getElementById("budgetConfig");
   if(budgetConfigEl && document.activeElement!==budgetConfigEl) budgetConfigEl.value = state.budget || "";
   var bBRL=walletBalance("BRL"), bUSD=walletBalance("USD");
-  var rawBRL=walletBalanceRaw("BRL"), rawUSD=walletBalanceRaw("USD");
   document.getElementById("balBRL").textContent=fmtBRL(bBRL);
   document.getElementById("balUSD").textContent=fmt(bUSD,"USD");
-  var subBRL=document.getElementById("balBRLSub");
-  if(subBRL) subBRL.textContent = "total de entradas adicionadas";
-  var subUSD=document.getElementById("balUSDSub");
-  if(subUSD) subUSD.textContent = "total de entradas adicionadas";
   document.getElementById("balTotal").textContent=fmtBRL(bBRL + toBRL(bUSD,"USD"));
   document.getElementById("balTotalSub").textContent="US$ "+bUSD.toLocaleString("pt-BR",{minimumFractionDigits:2})+" x "+(+state.rate);
 
