@@ -798,8 +798,8 @@ function render(){
   var budgetConfigEl=document.getElementById("budgetConfig");
   if(budgetConfigEl && document.activeElement!==budgetConfigEl) budgetConfigEl.value = state.budget || "";
   var bBRL=walletBalance("BRL"), bUSD=walletBalance("USD");
-  document.getElementById("balBRL").textContent=fmtBRL(bBRL);
-  document.getElementById("balUSD").textContent=fmt(bUSD,"USD");
+  document.getElementById("balBRL").textContent=fmtBRL(Math.max(0, bBRL));
+  document.getElementById("balUSD").textContent=fmt(Math.max(0, bUSD),"USD");
   document.getElementById("balTotal").textContent=fmtBRL(bBRL + toBRL(bUSD,"USD"));
   document.getElementById("balTotalSub").textContent="US$ "+bUSD.toLocaleString("pt-BR",{minimumFractionDigits:2})+" x "+(+state.rate);
 
