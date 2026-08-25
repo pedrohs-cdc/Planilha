@@ -1326,6 +1326,14 @@ function addEntry(){
         if(t.method==="cartao" && !t.installmentTotal){ var c=cardById(d.cardId); t.invoiceMonth=invoiceMonth(d.date,c?c.closingDay:1); }
         else if(t.method!=="cartao"){ t.invoiceMonth=null; }
       }
+      if(t.groupId){
+        state.tx.forEach(function(o){
+          if(o.groupId===t.groupId && o.id!==t.id){
+            o.description=d.desc;
+            if(kind!=="income") o.category=d.cat;
+          }
+        });
+      }
       break;
     }}
     save(); closeForm(); render(); return;
