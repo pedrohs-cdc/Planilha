@@ -483,11 +483,12 @@
           <input type="number" id="budgetConfig" step="0.01" min="0" placeholder="0,00 (sem limite)">
           <span>por mes</span>
         </div>
-        <h2 style="margin-top:24px">Cartoes de credito <span class="hint">dia de fechamento</span></h2>
+        <h2 style="margin-top:24px">Cartoes de credito <span class="hint">dia de fechamento e vencimento</span></h2>
         <div id="cardSettings"></div>
         <div class="settings-card" style="margin-top:12px">
           <input type="text" id="newCardName" placeholder="Nome do cartao">
           <input type="number" id="newCardDay" placeholder="Fecha dia" min="1" max="31" style="max-width:110px">
+          <input type="number" id="newCardDueDay" placeholder="Vence dia" min="1" max="31" style="max-width:110px">
           <button class="btn sm" id="addCard" style="margin-top:0">Adicionar</button>
         </div>
         <h2 style="margin-top:24px">Categorias</h2>
@@ -670,7 +671,8 @@ function defaults(){
       {id:"c_inter", name:"Inter", closingDay:18},
       {id:"c_nubank", name:"Nubank", closingDay:20},
       {id:"c_picpay", name:"PicPay", closingDay:19},
-      {id:"c_revolut", name:"Revolut", closingDay:20}
+      {id:"c_revolut", name:"Revolut", closingDay:20},
+      {id:"c_bradesco", name:"Bradesco", closingDay:18, dueDay:26}
     ],
     categories: BASE_CATS.slice().sort(sortCat),
     tx: [],
@@ -691,6 +693,7 @@ function load(){
       if(typeof d.budget!=="number") d.budget=0;
       if(d.tx) d.tx=d.tx.filter(function(t){return t.kind!=="save";});
       if(d.fixed) d.fixed=d.fixed.filter(function(f){return f.kind!=="save";});
+      if(!d.cards.some(function(c){return c.id==="c_bradesco";})) d.cards.push({id:"c_bradesco", name:"Bradesco", closingDay:18, dueDay:26});
       return d;
     }
   }catch(e){}
@@ -1017,7 +1020,7 @@ function renderFaturas(){
     var btnTxt = allPaid? "Fatura paga" : "Marcar fatura como paga";
     var btnCls = allPaid? "pago" : "pendente";
     var div=document.createElement("div"); div.className="card-fatura";
-    div.innerHTML="<div><div class='name'>"+escapeHtml(c.name)+"</div><div class='meta'>fecha dia "+c.closingDay+" &middot; "+items.length+" compras</div></div>"+
+    div.innerHTML="<div><div class='name'>"+escapeHtml(c.name)+"</div><div class='meta'>fecha dia "+c.closingDay+(c.dueDay?" &middot; vence dia "+c.dueDay:"")+" &middot; "+items.length+" compras</div></div>"+
       "<div class='right'><div class='tot' style='color:"+totColor+"'>"+valTxt+"</div>"+
       "<button class='status-btn "+btnCls+"' data-payfat='"+c.id+"' data-makepaid='"+(allPaid?"0":"1")+"'>"+btnTxt+"</button></div>";
     list.appendChild(div);
@@ -1088,11 +1091,12 @@ function renderConfig(){
   var cs=document.getElementById("cardSettings"); cs.innerHTML="";
   state.cards.forEach(function(c){
     var d=document.createElement("div"); d.className="settings-card";
-    d.innerHTML="<input type='text' value='"+escapeAttr(c.name)+"' data-cname='"+c.id+"'><span class='pill'>fecha dia</span><input type='number' min='1' max='31' value='"+c.closingDay+"' data-cday='"+c.id+"' style='max-width:80px'><button class='icobtn del' data-crm='"+c.id+"'>&times;</button>";
+    d.innerHTML="<input type='text' value='"+escapeAttr(c.name)+"' data-cname='"+c.id+"'><span class='pill'>fecha dia</span><input type='number' min='1' max='31' value='"+c.closingDay+"' data-cday='"+c.id+"' style='max-width:80px'><span class='pill'>vence dia</span><input type='number' min='1' max='31' value='"+(c.dueDay||"")+"' data-cdue='"+c.id+"' style='max-width:80px'><button class='icobtn del' data-crm='"+c.id+"'>&times;</button>";
     cs.appendChild(d);
   });
   cs.querySelectorAll("[data-cname]").forEach(function(i){ i.onchange=function(){ cardById(i.getAttribute("data-cname")).name=i.value; save(); render(); }; });
   cs.querySelectorAll("[data-cday]").forEach(function(i){ i.onchange=function(){ cardById(i.getAttribute("data-cday")).closingDay=+i.value||1; save(); render(); }; });
+  cs.querySelectorAll("[data-cdue]").forEach(function(i){ i.onchange=function(){ cardById(i.getAttribute("data-cdue")).dueDay=+i.value||null; save(); render(); }; });
   cs.querySelectorAll("[data-crm]").forEach(function(b){ b.onclick=function(){ if(confirm("Remover cartao?")){ state.cards=state.cards.filter(function(x){return x.id!==b.getAttribute("data-crm");}); save(); render(); } }; });
 
   var cl=document.getElementById("catList"); cl.innerHTML="";
@@ -1466,9 +1470,10 @@ document.getElementById("btnAdd").onclick=addEntry;
 
 document.getElementById("addCard").onclick=function(){
   var name=document.getElementById("newCardName").value.trim(); var day=+document.getElementById("newCardDay").value||1;
+  var dueDay=+document.getElementById("newCardDueDay").value||null;
   if(!name){ alert("Informe o nome do cartao."); return; }
-  state.cards.push({id:uid(),name:name,closingDay:day}); save();
-  document.getElementById("newCardName").value=""; document.getElementById("newCardDay").value=""; render();
+  state.cards.push({id:uid(),name:name,closingDay:day,dueDay:dueDay}); save();
+  document.getElementById("newCardName").value=""; document.getElementById("newCardDay").value=""; document.getElementById("newCardDueDay").value=""; render();
 };
 document.getElementById("addCat").onclick=function(){
   var v=document.getElementById("newCat").value.trim(); if(!v)return;
