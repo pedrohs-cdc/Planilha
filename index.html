@@ -168,6 +168,7 @@
   .balance-card.brl{border-top:2px solid var(--green);--bc-accent:var(--green)}
   .balance-card.usd{border-top:2px solid var(--accent);--bc-accent:var(--accent)}
   .balance-card.total{border-top:2px solid var(--accent2);--bc-accent:var(--accent2)}
+  .balance-card.pedrin{border-top:2px solid var(--accent2);--bc-accent:var(--accent2)}
   .balance-card.fatura{border-top:2px solid var(--yellow);--bc-accent:var(--yellow)}
   .balance-card.gastos{border-top:2px solid var(--red);--bc-accent:var(--red)}
   .balance-card.pend{border-top:2px solid var(--yellow);--bc-accent:var(--yellow)}
@@ -369,6 +370,7 @@
   <div class="cards-row">
     <div class="balance-card brl"><div class="bc-top"><div class="lbl">Saldo Reais</div><span class="bc-ic">💰</span></div><div class="val" id="balBRL">R$ 0,00</div><div class="sub">entradas - gastos pagos</div></div>
     <div class="balance-card usd"><div class="bc-top"><div class="lbl">Saldo em cripto</div><span class="bc-ic">💵</span></div><div class="val" id="balUSD">US$ 0,00</div><div class="sub">entradas - gastos pagos</div></div>
+    <div class="balance-card pedrin"><div class="bc-top"><div class="lbl">10% Pedrin</div><span class="bc-ic">🐷</span></div><div class="val" id="balPedrin">US$ 0,00</div><div class="sub">10% de toda entrada em cripto</div></div>
     <div class="balance-card fatura"><div class="bc-top"><div class="lbl">Faturas do mes</div><span class="bc-ic">🧾</span></div><div class="val" id="balFatura" style="color:var(--yellow)">R$ 0,00</div><div class="sub">soma dos cartoes</div><div class="bc-bar"><div class="bc-bar-fill" id="barFatura"></div></div></div>
     <div class="balance-card gastos"><div class="bc-top"><div class="lbl">Gastos do mes</div><span class="bc-ic">📉</span></div><div class="val" id="balGastos" style="color:var(--red)">R$ 0,00</div><div class="sub" id="balGastosSub">carteira + cartoes</div><div class="bc-bar hidden" id="barBudgetWrap"><div class="bc-bar-fill" id="barBudget"></div></div></div>
     <div class="balance-card pend"><div class="bc-top"><div class="lbl">A pagar (pendente)</div><span class="bc-ic">⏳</span></div><div class="val" id="balPend" style="color:var(--yellow)">R$ 0,00</div><div class="sub">gastos nao pagos do mes</div><div class="bc-bar"><div class="bc-bar-fill" id="barPend"></div></div></div>
@@ -794,6 +796,26 @@ function walletBalance(cur){
   return bal;
 }
 
+// 10% de toda entrada (receita) em cripto/US$, separado num "cofrinho" a parte.
+function pedrinBalance(){
+  var n=nowYm(), bal=0;
+  state.tx.forEach(function(t){
+    if(t.currency!=="USD" || t.kind!=="income") return;
+    var comp = t.method==="cartao" && t.invoiceMonth ? t.invoiceMonth : monthOf(t.date);
+    if(comp>n) return;
+    bal += t.amount*0.10;
+  });
+  state.fixed.forEach(function(f){
+    if(f.currency!=="USD" || f.kind!=="income") return;
+    var m=f.startMonth;
+    while(m<=n){
+      bal += f.amount*0.10;
+      m=addMonths(m,1);
+    }
+  });
+  return bal;
+}
+
 function render(){
   document.getElementById("monthLabel").textContent = monthLabel(view);
   document.getElementById("rate").value = state.rate;
@@ -804,6 +826,7 @@ function render(){
   var bBRL=walletBalance("BRL"), bUSD=walletBalance("USD");
   document.getElementById("balBRL").textContent=fmtBRL(Math.max(0, bBRL));
   document.getElementById("balUSD").textContent=fmt(Math.max(0, bUSD),"USD");
+  document.getElementById("balPedrin").textContent=fmt(pedrinBalance(),"USD");
 
   var rowsV=entriesForMonth(view);
   var totGastos=0, totPend=0, totFaturaCartao=0;
