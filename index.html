@@ -769,6 +769,8 @@ function entriesForMonth(ym){
 }
 
 function walletBalance(cur){
+  // US$ agora e tratado como cripto: nao entra no saldo em dinheiro, so fica registrado nos lancamentos.
+  if(cur==="USD") return 0;
   var n=nowYm(), bal=0;
   state.tx.forEach(function(t){
     if(t.currency!==cur) return;
