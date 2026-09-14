@@ -797,22 +797,17 @@ function walletBalance(cur){
 }
 
 // 10% de toda entrada (receita) em cripto/US$, separado num "cofrinho" a parte.
+// So conta entradas a partir desta data (pedido do usuario pra zerar o historico anterior).
+var PEDRIN_START_DATE = "2026-09-14";
 function pedrinBalance(){
   var n=nowYm(), bal=0;
-  state.tx.forEach(function(t){
-    if(t.currency!=="USD" || t.kind!=="income") return;
-    var comp = t.method==="cartao" && t.invoiceMonth ? t.invoiceMonth : monthOf(t.date);
-    if(comp>n) return;
-    bal += t.amount*0.10;
-  });
-  state.fixed.forEach(function(f){
-    if(f.currency!=="USD" || f.kind!=="income") return;
-    var m=f.startMonth;
-    while(m<=n){
-      bal += f.amount*0.10;
-      m=addMonths(m,1);
-    }
-  });
+  var m=monthOf(PEDRIN_START_DATE);
+  while(m<=n){
+    entriesForMonth(m).forEach(function(e){
+      if(e.currency==="USD" && e.kind==="income" && e.date>=PEDRIN_START_DATE) bal += e.amount*0.10;
+    });
+    m=addMonths(m,1);
+  }
   return bal;
 }
 
