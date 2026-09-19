@@ -639,7 +639,7 @@ function loadFromCloud() {
         if (!d.lastBackup) d.lastBackup = 0;
         if (d.tx)    d.tx    = d.tx.filter(function(t){ return t.kind !== "save"; });
         if (d.fixed) d.fixed = d.fixed.filter(function(f){ return f.kind !== "save"; });
-        if (!d.cards.some(function(c){ return c.id === "c_bradesco"; })) d.cards.push({id:"c_bradesco", name:"Bradesco", closingDay:18, dueDay:26});
+        if (!d.cards.some(function(c){ return c.id === "c_bradesco"; })) d.cards.push({id:"c_bradesco", name:"Bradesco", closingDay:17, dueDay:26});
         return d;
       }
     }
@@ -674,7 +674,7 @@ function defaults(){
       {id:"c_nubank", name:"Nubank", closingDay:20},
       {id:"c_picpay", name:"PicPay", closingDay:19},
       {id:"c_revolut", name:"Revolut", closingDay:20},
-      {id:"c_bradesco", name:"Bradesco", closingDay:18, dueDay:26}
+      {id:"c_bradesco", name:"Bradesco", closingDay:17, dueDay:26}
     ],
     categories: BASE_CATS.slice().sort(sortCat),
     tx: [],
@@ -695,7 +695,7 @@ function load(){
       if(typeof d.budget!=="number") d.budget=0;
       if(d.tx) d.tx=d.tx.filter(function(t){return t.kind!=="save";});
       if(d.fixed) d.fixed=d.fixed.filter(function(f){return f.kind!=="save";});
-      if(!d.cards.some(function(c){return c.id==="c_bradesco";})) d.cards.push({id:"c_bradesco", name:"Bradesco", closingDay:18, dueDay:26});
+      if(!d.cards.some(function(c){return c.id==="c_bradesco";})) d.cards.push({id:"c_bradesco", name:"Bradesco", closingDay:17, dueDay:26});
       return d;
     }
   }catch(e){}
